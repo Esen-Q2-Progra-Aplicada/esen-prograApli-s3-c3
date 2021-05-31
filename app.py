@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from logic.user_logic import UserLogic
 import bcrypt
 
@@ -20,8 +20,17 @@ def register():
         userEmail = request.form["useremail"]
         passwd = request.form["passwd"]
         confpasswd = request.form["confpasswd"]
-        # logic.insertUser()
-        return "posted"
+        if passwd == confpasswd:
+            salt = bcrypt.gensalt(rounds=14)
+            strSalt = salt.decode("utf-8")
+            encPasswd = passwd.encode("utf-8")
+            hashPasswd = bcrypt.hashpw(encPasswd, salt)
+            strPasswd = hashPasswd.decode("utf-8")
+            rows = logic.insertUser(userName, userEmail, strPasswd, strSalt)
+            return redirect("login")
+        else:
+            return redirect("register")
+        return f"posted rows: {rows}"
 
 
 if __name__ == "__main__":
