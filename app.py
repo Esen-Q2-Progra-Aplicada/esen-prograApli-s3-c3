@@ -30,7 +30,26 @@ def register():
             return redirect("login")
         else:
             return redirect("register")
-        return f"posted rows: {rows}"
+        return f"posted register rows: {rows}"
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+    elif request.method == "POST":
+        logic = UserLogic()
+        userEmail = request.form["useremail"]
+        passwd = request.form["passwd"]
+        userDict = logic.getUserByEmail(userEmail)
+        salt = userDict["salt"].encode("utf-8")
+        hashPasswd = bcrypt.hashpw(passwd.encode("utf-8"), salt)
+        dbPasswd = userDict["password"].encode("utf-8")
+        if hashPasswd == dbPasswd:
+            print("they are a match!")
+        else:
+            print("they are not matched")
+        return "posted login"
 
 
 if __name__ == "__main__":
