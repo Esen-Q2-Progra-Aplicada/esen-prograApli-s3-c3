@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 from logic.user_logic import UserLogic
 import bcrypt
 
 app = Flask(__name__)
+app.secret_key = "Bad1secret2key3!+"
 
 
 @app.route("/")
@@ -46,10 +47,31 @@ def login():
         hashPasswd = bcrypt.hashpw(passwd.encode("utf-8"), salt)
         dbPasswd = userDict["password"].encode("utf-8")
         if hashPasswd == dbPasswd:
-            print("they are a match!")
+            session["login_user"] = userEmail
+            session["loggedIn"] = True
+            return redirect("dashboard")
         else:
-            print("they are not matched")
+            return redirect("login")
         return "posted login"
+
+
+@app.route("/logout")
+def logout():
+    if session.get("loggedIn"):
+        session.pop("login_user")
+        session.pop("loggedIn")
+        return redirect("login")
+    else:
+        return redirect("login")
+
+
+@app.route("/dashboard")
+def dashboard():
+    if session.get("loggedIn"):
+        user = session.get("login_user")
+        return render_template("dashboard.html", user=user)
+    else:
+        return redirect("login")
 
 
 if __name__ == "__main__":
